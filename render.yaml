@@ -1,0 +1,58 @@
+# Render.com Blueprint for Recession Dashboard
+# This file configures automated deployment to Render
+
+services:
+  # Main web application
+  - type: web
+    name: recession-dashboard
+    env: python
+    region: oregon
+    plan: starter # Free tier - upgrade to standard for production
+    branch: main
+    buildCommand: pip install -r web_app/requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120 web_app.app:server
+    healthCheckPath: /
+    envVars:
+      - key: FRED_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: SMTP_SERVER
+        sync: false # Optional: Set if you want email notifications
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: NOTIFICATION_EMAIL
+        sync: false
+    autoDeploy: true # Auto-deploy on git push
+
+
+  # Background worker for data updates (optional - requires paid plan)
+  # - type: worker
+  #   name: recession-dashboard-updater
+  #   env: python
+  #   region: oregon
+  #   plan: starter
+  #   branch: main
+  #   buildCommand: pip install -r web_app/requirements.txt
+  #   startCommand: python scripts/update_data.py --notify
+  #   envVars:
+  #     - fromService:
+  #         type: web
+  #         name: recession-dashboard
+  #         envVarKey: FRED_API_KEY
+  #     - fromService:
+  #         type: web
+  #         name: recession-dashboard
+  #         envVarKey: SMTP_SERVER
+  #     - fromService:
+  #         type: web
+  #         name: recession-dashboard
+  #         envVarKey: SMTP_USERNAME
+  #     - fromService:
+  #         type: web
+  #         name: recession-dashboard
+  #         envVarKey: SMTP_PASSWORD

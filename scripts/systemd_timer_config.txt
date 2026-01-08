@@ -1,0 +1,85 @@
+# Systemd Timer Configuration for Recession Dashboard
+# For Linux systems using systemd
+
+# ===== INSTALLATION =====
+# 1. Copy service file to systemd directory:
+#    sudo cp recession-dashboard-update.service /etc/systemd/system/
+#    sudo cp recession-dashboard-update.timer /etc/systemd/system/
+#
+# 2. Enable and start the timer:
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable recession-dashboard-update.timer
+#    sudo systemctl start recession-dashboard-update.timer
+#
+# 3. Check timer status:
+#    systemctl status recession-dashboard-update.timer
+#    systemctl list-timers --all
+
+# ===== recession-dashboard-update.service =====
+[Unit]
+Description=Recession Dashboard Data Update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=YOUR_USERNAME
+WorkingDirectory=/path/to/financial_crash_indicators
+Environment="PATH=/path/to/tf/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/path/to/tf/bin/python scripts/update_data.py --notify
+StandardOutput=append:/path/to/financial_crash_indicators/logs/systemd.log
+StandardError=append:/path/to/financial_crash_indicators/logs/systemd.log
+
+# ===== recession-dashboard-update.timer =====
+[Unit]
+Description=Daily Recession Dashboard Update
+Requires=recession-dashboard-update.service
+
+[Timer]
+# Run daily at 6:00 AM
+OnCalendar=*-*-* 06:00:00
+# Run 5 minutes after boot if missed
+OnBootSec=5min
+# Run if missed due to system being off
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+# ===== ALTERNATIVE SCHEDULES =====
+
+# Weekdays only at 9:00 AM:
+# OnCalendar=Mon-Fri *-*-* 09:00:00
+
+# Every 6 hours:
+# OnCalendar=*-*-* 00,06,12,18:00:00
+
+# Weekly on Sunday at 2:00 AM:
+# OnCalendar=Sun *-*-* 02:00:00
+
+# First of every month at 8:00 AM:
+# OnCalendar=*-*-01 08:00:00
+
+# ===== MANAGEMENT COMMANDS =====
+# Start timer:
+#   sudo systemctl start recession-dashboard-update.timer
+#
+# Stop timer:
+#   sudo systemctl stop recession-dashboard-update.timer
+#
+# Restart timer:
+#   sudo systemctl restart recession-dashboard-update.timer
+#
+# View status:
+#   systemctl status recession-dashboard-update.timer
+#   systemctl status recession-dashboard-update.service
+#
+# View logs:
+#   journalctl -u recession-dashboard-update.service
+#   journalctl -u recession-dashboard-update.service -f  # Follow
+#
+# Run service manually:
+#   sudo systemctl start recession-dashboard-update.service
+#
+# Next run time:
+#   systemctl list-timers recession-dashboard-update.timer

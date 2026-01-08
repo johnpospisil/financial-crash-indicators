@@ -1,0 +1,70 @@
+# Cron Schedule Examples for Recession Dashboard Data Updates
+#
+# Installation:
+# 1. Open crontab editor: crontab -e
+# 2. Add one of the schedules below
+# 3. Save and exit
+#
+# Important: Replace /path/to/financial_crash_indicators with your actual path
+#
+
+# ===== RECOMMENDED SCHEDULES =====
+
+# Daily at 6:00 AM (after most data releases)
+0 6 * * * cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py --notify >> logs/cron.log 2>&1
+
+# Weekdays at 9:00 AM (after market open)
+0 9 * * 1-5 cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py --notify >> logs/cron.log 2>&1
+
+# Multiple times per day (6 AM, 12 PM, 6 PM)
+0 6,12,18 * * * cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py >> logs/cron.log 2>&1
+
+
+# ===== ADVANCED SCHEDULES =====
+
+# First Friday of month at 8:30 AM (BLS employment report day)
+# Note: This runs every Friday, but you can filter in script
+30 8 * * 5 cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py --force --notify >> logs/cron.log 2>&1
+
+# Last day of quarter at 8:30 AM (GDP release)
+# March 31, June 30, Sept 30, Dec 31
+30 8 31 3,6,9,12 * cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py --force --notify >> logs/cron.log 2>&1
+
+# Weekly on Sunday at 2:00 AM (weekly update)
+0 2 * * 0 cd /path/to/financial_crash_indicators && /path/to/tf/bin/python scripts/update_data.py --force --notify >> logs/cron.log 2>&1
+
+
+# ===== MONITORING & MAINTENANCE =====
+
+# Monthly log cleanup (first day of month at 1 AM)
+0 1 1 * * find /path/to/financial_crash_indicators/logs -name "*.log" -mtime +30 -delete
+
+# Weekly cache cleanup (Sunday at 3 AM)
+0 3 * * 0 find /path/to/financial_crash_indicators/data/cache -name "*.pkl" -mtime +90 -delete
+
+
+# ===== CRON TIME FORMAT =====
+# ┌─────────── minute (0 - 59)
+# │ ┌───────── hour (0 - 23)
+# │ │ ┌─────── day of month (1 - 31)
+# │ │ │ ┌───── month (1 - 12)
+# │ │ │ │ ┌─── day of week (0 - 6) (Sunday = 0)
+# │ │ │ │ │
+# * * * * * command to execute
+
+
+# ===== USEFUL CRON COMMANDS =====
+# List current cron jobs:
+#   crontab -l
+#
+# Edit cron jobs:
+#   crontab -e
+#
+# Remove all cron jobs:
+#   crontab -r
+#
+# View cron log (macOS):
+#   log show --predicate 'process == "cron"' --last 1h
+#
+# View cron log (Linux):
+#   grep CRON /var/log/syslog

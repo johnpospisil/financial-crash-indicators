@@ -1,0 +1,2 @@
+# Runtime for Heroku - specify Python version
+python-3.12.0

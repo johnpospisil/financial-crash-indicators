@@ -1,0 +1,86 @@
+# Email Notification Configuration
+# Set these environment variables for email notifications
+
+# ===== Gmail Configuration (Recommended for testing) =====
+# 1. Enable 2-factor authentication on your Gmail account
+# 2. Create an App Password:
+#    - Go to https://myaccount.google.com/security
+#    - Click "App passwords"
+#    - Generate password for "Mail"
+# 3. Set environment variables:
+
+export SMTP_SERVER="smtp.gmail.com"
+export SMTP_PORT="587"
+export SENDER_EMAIL="your.email@gmail.com"
+export SENDER_PASSWORD="your-app-password"  # Use App Password, not regular password
+export RECIPIENT_EMAIL="recipient@email.com"
+
+# ===== Alternative SMTP Providers =====
+
+# Outlook/Hotmail:
+# export SMTP_SERVER="smtp-mail.outlook.com"
+# export SMTP_PORT="587"
+# export SENDER_EMAIL="your.email@outlook.com"
+# export SENDER_PASSWORD="your-password"
+# export RECIPIENT_EMAIL="recipient@email.com"
+
+# Yahoo:
+# export SMTP_SERVER="smtp.mail.yahoo.com"
+# export SMTP_PORT="587"
+# export SENDER_EMAIL="your.email@yahoo.com"
+# export SENDER_PASSWORD="your-app-password"
+# export RECIPIENT_EMAIL="recipient@email.com"
+
+# SendGrid:
+# export SMTP_SERVER="smtp.sendgrid.net"
+# export SMTP_PORT="587"
+# export SENDER_EMAIL="apikey"  # Literal string "apikey"
+# export SENDER_PASSWORD="your-sendgrid-api-key"
+# export RECIPIENT_EMAIL="recipient@email.com"
+
+# ===== Permanent Configuration =====
+
+# Option 1: Add to ~/.bashrc or ~/.zshrc
+echo 'export SMTP_SERVER="smtp.gmail.com"' >> ~/.bashrc
+echo 'export SMTP_PORT="587"' >> ~/.bashrc
+echo 'export SENDER_EMAIL="your.email@gmail.com"' >> ~/.bashrc
+echo 'export SENDER_PASSWORD="your-app-password"' >> ~/.bashrc
+echo 'export RECIPIENT_EMAIL="recipient@email.com"' >> ~/.bashrc
+source ~/.bashrc
+
+# Option 2: Create .env file (do NOT commit to git)
+cat > /path/to/financial_crash_indicators/.env << EOF
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SENDER_EMAIL=your.email@gmail.com
+SENDER_PASSWORD=your-app-password
+RECIPIENT_EMAIL=recipient@email.com
+EOF
+
+# Then source it before running:
+# set -a; source .env; set +a
+
+# Option 3: Add to cron job
+# 0 6 * * * export SMTP_SERVER="smtp.gmail.com" SMTP_PORT="587" SENDER_EMAIL="..." && /path/to/script
+
+# ===== Testing Email Configuration =====
+# Test notifications:
+cd /path/to/financial_crash_indicators
+python scripts/update_data.py --notify --verbose
+
+# You should receive an email with update status
+
+# ===== Security Notes =====
+# - NEVER commit passwords to git
+# - Use App Passwords instead of account passwords
+# - Add .env to .gitignore
+# - Consider using a dedicated email account for notifications
+# - Rotate passwords regularly
+
+# ===== Troubleshooting =====
+# If emails are not sending:
+# 1. Check environment variables are set: echo $SENDER_EMAIL
+# 2. Verify SMTP settings for your provider
+# 3. Check for "less secure app" restrictions
+# 4. Review logs for error messages
+# 5. Test SMTP connection with telnet: telnet smtp.gmail.com 587

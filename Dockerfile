@@ -27,9 +27,8 @@ RUN pip install --no-cache-dir -r web_app/requirements.txt
 COPY src/ /app/src/
 COPY web_app/ /app/web_app/
 COPY scripts/ /app/scripts/
-COPY data/ /app/data/
 
-# Create necessary directories
+# Create necessary directories (data will be fetched at runtime from FRED API)
 RUN mkdir -p /app/data/cache /app/logs
 
 # Create non-root user for security

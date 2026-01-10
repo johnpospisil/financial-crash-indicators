@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-from components.data_loader import load_data, get_markers, format_date
+from web_app.components.data_loader import load_data, get_markers, format_date
 
 dash.register_page(__name__, path='/secondary-indicators', title='Secondary Indicators - Recession Dashboard')
 

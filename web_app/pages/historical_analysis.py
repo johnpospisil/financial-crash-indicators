@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 
-from components.data_loader import load_data, get_markers
+from web_app.components.data_loader import load_data, get_markers
 
 dash.register_page(__name__, path='/historical-analysis', title='Historical Analysis - Recession Dashboard')
 

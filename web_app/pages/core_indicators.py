@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import io
 import base64
 
-from components.data_loader import load_data, get_markers, format_date
+from web_app.components.data_loader import load_data, get_markers, format_date
 
 dash.register_page(__name__, path='/core-indicators', title='Core Indicators - Recession Dashboard')
 

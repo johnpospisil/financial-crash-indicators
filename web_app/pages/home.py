@@ -10,7 +10,7 @@ from datetime import datetime
 import pandas as pd
 import io
 
-from components.data_loader import load_data, load_analysis, get_markers, format_date
+from web_app.components.data_loader import load_data, load_analysis, get_markers, format_date
 
 dash.register_page(__name__, path='/', title='Overview - Recession Dashboard')
 

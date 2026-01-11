@@ -14,25 +14,29 @@ def interpolate_october_2025(series: pd.Series, method='linear') -> Tuple[pd.Ser
     Interpolate missing October 2025 data points using linear interpolation.
     
     This function specifically handles data gaps from the October 2025 government shutdown
-    that prevented collection of key economic indicators.
+    that prevented collection of key economic indicators. It handles both:
+    - Existing NaN values in October 2025
+    - Completely missing October 2025 dates (for monthly series)
     
     Parameters:
     -----------
     series : pd.Series
         Time series data with DatetimeIndex, potentially containing NaN values in Oct 2025
+        or missing October 2025 entirely
     method : str, default 'linear'
         Interpolation method. Currently only 'linear' is supported.
         
     Returns:
     --------
     interpolated_series : pd.Series
-        Series with October 2025 NaN values interpolated
+        Series with October 2025 values interpolated (either filled NaN or added missing dates)
     metadata : dict
         Dictionary containing:
         - 'estimated_dates': List of dates that were interpolated
         - 'estimation_method': Method used for interpolation
         - 'original_nan_count': Number of NaN values before interpolation
         - 'interpolated_count': Number of values that were interpolated
+        - 'shutdown_affected': True if October 2025 data was affected
         
     Examples:
     ---------
@@ -54,6 +58,18 @@ def interpolate_october_2025(series: pd.Series, method='linear') -> Tuple[pd.Ser
     
     # Track original NaN count
     original_nan_count = series.isna().sum()
+    
+    # Check if October 2025 is completely missing (for monthly series)
+    has_sept_2025 = any((interpolated_series.index.year == 2025) & (interpolated_series.index.month == 9))
+    has_nov_2025 = any((interpolated_series.index.year == 2025) & (interpolated_series.index.month == 11))
+    has_oct_2025 = any((interpolated_series.index.year == 2025) & (interpolated_series.index.month == 10))
+    
+    # If we have Sept and Nov but missing Oct, add Oct date for monthly series
+    if has_sept_2025 and has_nov_2025 and not has_oct_2025:
+        # This is likely monthly data - add October 2025-10-01
+        oct_date = pd.Timestamp('2025-10-01')
+        interpolated_series.loc[oct_date] = np.nan
+        interpolated_series = interpolated_series.sort_index()
     
     # Identify October 2025 dates with NaN values
     oct_2025_mask = (

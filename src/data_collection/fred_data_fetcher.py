@@ -12,6 +12,14 @@ from dotenv import load_dotenv
 import pickle
 
 from .cache_manager import DataCacheManager
+try:
+    from ..processing.data_interpolation import interpolate_october_2025, get_data_quality_flags
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from processing.data_interpolation import interpolate_october_2025, get_data_quality_flags
 
 # Load environment variables
 load_dotenv()
@@ -127,9 +135,16 @@ class FREDDataFetcher:
         
         return df
     
-    def fetch_labor_market_data(self, start_date='1980-01-01'):
+    def fetch_labor_market_data(self, start_date='1980-01-01', apply_interpolation=True):
         """
         Fetch labor market indicators
+        
+        Parameters:
+        -----------
+        start_date : str, default '1980-01-01'
+            Start date for data fetch
+        apply_interpolation : bool, default True
+            Whether to interpolate missing October 2025 data
         
         Returns:
         --------
@@ -152,6 +167,13 @@ class FREDDataFetcher:
         
         # Calculate 4-week moving average of jobless claims
         icsa_4wk = icsa.rolling(window=4).mean()
+        
+        # Apply October 2025 interpolation if requested
+        if apply_interpolation:
+            unrate, _ = interpolate_october_2025(unrate)
+            sahm, _ = interpolate_october_2025(sahm)
+            icsa, _ = interpolate_october_2025(icsa)
+            icsa_4wk, _ = interpolate_october_2025(icsa_4wk)
         
         df = pd.DataFrame({
             'UNRATE': unrate,
@@ -369,9 +391,16 @@ class FREDDataFetcher:
         
         return df
     
-    def fetch_consumer_confidence(self, start_date='1980-01-01'):
+    def fetch_consumer_confidence(self, start_date='1980-01-01', apply_interpolation=True):
         """
         Fetch consumer confidence and sentiment data
+        
+        Parameters:
+        -----------
+        start_date : str, default '1980-01-01'
+            Start date for data fetch
+        apply_interpolation : bool, default True
+            Whether to interpolate missing October 2025 data
         
         Returns:
         --------
@@ -393,22 +422,28 @@ class FREDDataFetcher:
         # Personal Consumption Expenditures
         try:
             pce = self.fetch_series('PCE', start_date)
-            pce_mom = pce.pct_change(1) * 100
-            pce_yoy = pce.pct_change(12) * 100
         except:
             print("PCE not available")
             pce = pd.Series(dtype=float)
-            pce_mom = pd.Series(dtype=float)
-            pce_yoy = pd.Series(dtype=float)
         
         # Retail Sales
         try:
             retail = self.fetch_series('RSXFS', start_date)
-            retail_mom = retail.pct_change(1) * 100
         except:
             print("Retail sales not available")
             retail = pd.Series(dtype=float)
-            retail_mom = pd.Series(dtype=float)
+        
+        # Apply October 2025 interpolation if requested
+        if apply_interpolation:
+            umich, _ = interpolate_october_2025(umich)
+            cci, _ = interpolate_october_2025(cci)
+            pce, _ = interpolate_october_2025(pce)
+            retail, _ = interpolate_october_2025(retail)
+        
+        # Calculate percentage changes after interpolation
+        pce_mom = pce.pct_change(1) * 100
+        pce_yoy = pce.pct_change(12) * 100
+        retail_mom = retail.pct_change(1) * 100
         
         df = pd.DataFrame({
             'UMich_Sentiment': umich,

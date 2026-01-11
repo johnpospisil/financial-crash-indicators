@@ -14,12 +14,14 @@ import pickle
 from .cache_manager import DataCacheManager
 try:
     from ..processing.data_interpolation import interpolate_october_2025, get_data_quality_flags
+    from ..processing.data_quality_tracker import get_global_tracker
 except ImportError:
     # Fallback for direct execution
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from processing.data_interpolation import interpolate_october_2025, get_data_quality_flags
+    from processing.data_quality_tracker import get_global_tracker
 
 # Load environment variables
 load_dotenv()
@@ -170,10 +172,17 @@ class FREDDataFetcher:
         
         # Apply October 2025 interpolation if requested
         if apply_interpolation:
-            unrate, _ = interpolate_october_2025(unrate)
-            sahm, _ = interpolate_october_2025(sahm)
-            icsa, _ = interpolate_october_2025(icsa)
-            icsa_4wk, _ = interpolate_october_2025(icsa_4wk)
+            unrate, unrate_meta = interpolate_october_2025(unrate)
+            sahm, sahm_meta = interpolate_october_2025(sahm)
+            icsa, icsa_meta = interpolate_october_2025(icsa)
+            icsa_4wk, icsa_4wk_meta = interpolate_october_2025(icsa_4wk)
+            
+            # Register quality tracking
+            tracker = get_global_tracker()
+            tracker.register_series('UNRATE', unrate, unrate_meta)
+            tracker.register_series('SAHM_Rule', sahm, sahm_meta)
+            tracker.register_series('Jobless_Claims', icsa, icsa_meta)
+            tracker.register_series('Jobless_Claims_4WK', icsa_4wk, icsa_4wk_meta)
         
         df = pd.DataFrame({
             'UNRATE': unrate,
@@ -435,10 +444,17 @@ class FREDDataFetcher:
         
         # Apply October 2025 interpolation if requested
         if apply_interpolation:
-            umich, _ = interpolate_october_2025(umich)
-            cci, _ = interpolate_october_2025(cci)
-            pce, _ = interpolate_october_2025(pce)
-            retail, _ = interpolate_october_2025(retail)
+            umich, umich_meta = interpolate_october_2025(umich)
+            cci, cci_meta = interpolate_october_2025(cci)
+            pce, pce_meta = interpolate_october_2025(pce)
+            retail, retail_meta = interpolate_october_2025(retail)
+            
+            # Register quality tracking
+            tracker = get_global_tracker()
+            tracker.register_series('UMich_Sentiment', umich, umich_meta)
+            tracker.register_series('Consumer_Confidence', cci, cci_meta)
+            tracker.register_series('PCE', pce, pce_meta)
+            tracker.register_series('Retail_Sales', retail, retail_meta)
         
         # Calculate percentage changes after interpolation
         pce_mom = pce.pct_change(1) * 100

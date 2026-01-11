@@ -301,9 +301,9 @@ class FREDDataFetcher:
         
         # ISM Manufacturing: PMI Composite Index
         try:
-            pmi_composite = self.fetch_series('NAPM', start_date)  # Now called ISM Manufacturing: PMI Composite Index
+            pmi_composite = self.fetch_series('MANEMP', start_date)  # ISM Manufacturing: PMI Composite Index
         except:
-            print("NAPM not available")
+            print("PMI Composite not available")
             pmi_composite = pd.Series(dtype=float)
         
         # Industrial Production Index

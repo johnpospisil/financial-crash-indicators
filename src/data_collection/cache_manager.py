@@ -54,7 +54,7 @@ class DataCacheManager:
         'USALOLITONOSTSAM': 'monthly',
         'MANEMP': 'monthly',
         'NEWORDER': 'monthly',
-        'NAPM': 'monthly',
+        'MANEMP': 'monthly',
         'INDPRO': 'monthly',
         
         # Quarterly series

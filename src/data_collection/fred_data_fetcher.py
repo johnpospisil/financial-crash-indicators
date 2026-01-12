@@ -280,22 +280,24 @@ class FREDDataFetcher:
         """
         print("\n=== Fetching Leading Economic Index ===")
         
-        # Conference Board Leading Economic Index
+        # OECD Leading Economic Index for United States
         try:
-            lei = self.fetch_series('USSLIND', start_date)  # Conference Board LEI
+            lei = self.fetch_series('USALOLITONOSTSAM', start_date)  # OECD Composite LEI
         except:
-            print("USSLIND not available, trying alternative...")
+            print("USALOLITONOSTSAM not available, trying Conference Board...")
             try:
-                lei = self.fetch_series('USALOLITONOSTSAM', start_date)  # OECD LEI
+                lei = self.fetch_series('USSLIND', start_date)  # Conference Board LEI (discontinued)
             except:
                 print("LEI not available")
                 lei = pd.Series(dtype=float)
         
         # Calculate month-over-month change
-        lei_mom = lei.pct_change(1) * 100  # Percentage change
-        
-        # Calculate 6-month change
-        lei_6m = lei.pct_change(6) * 100
+        if len(lei) > 0:
+            lei_mom = lei.pct_change(1) * 100  # Percentage change
+            lei_6m = lei.pct_change(6) * 100
+        else:
+            lei_mom = pd.Series(dtype=float)
+            lei_6m = pd.Series(dtype=float)
         
         df = pd.DataFrame({
             'LEI': lei,
@@ -309,6 +311,9 @@ class FREDDataFetcher:
         """
         Fetch ISM Manufacturing PMI data
         
+        Note: Actual ISM PMI is proprietary and not available via FRED.
+        Using Industrial Production as a proxy for manufacturing activity.
+        
         Returns:
         --------
         pd.DataFrame
@@ -316,12 +321,24 @@ class FREDDataFetcher:
         """
         print("\n=== Fetching Manufacturing PMI ===")
         
-        # ISM Manufacturing PMI
+        # Use Industrial Production: Manufacturing (IPMAN) as PMI proxy
+        # This is on a ~100 index scale, similar to PMI
         try:
-            pmi = self.fetch_series('MANEMP', start_date)  # ISM Mfg: Employment Index
+            pmi_proxy = self.fetch_series('IPMAN', start_date)  # Manufacturing Industrial Production
+        except:
+            print("IPMAN not available, using INDPRO...")
+            try:
+                pmi_proxy = self.fetch_series('INDPRO', start_date)
+            except:
+                print("Manufacturing proxy not available")
+                pmi_proxy = pd.Series(dtype=float)
+        
+        # Manufacturing Employment (in thousands)
+        try:
+            employment = self.fetch_series('MANEMP', start_date)
         except:
             print("MANEMP not available")
-            pmi = pd.Series(dtype=float)
+            employment = pd.Series(dtype=float)
         
         # ISM Manufacturing: New Orders
         try:
@@ -330,14 +347,7 @@ class FREDDataFetcher:
             print("NEWORDER not available")
             new_orders = pd.Series(dtype=float)
         
-        # ISM Manufacturing: PMI Composite Index
-        try:
-            pmi_composite = self.fetch_series('MANEMP', start_date)  # ISM Manufacturing: PMI Composite Index
-        except:
-            print("PMI Composite not available")
-            pmi_composite = pd.Series(dtype=float)
-        
-        # Industrial Production Index
+        # Industrial Production Index (better proxy for manufacturing activity)
         try:
             industrial_prod = self.fetch_series('INDPRO', start_date)
             ip_mom = industrial_prod.pct_change(1) * 100
@@ -347,12 +357,14 @@ class FREDDataFetcher:
             ip_mom = pd.Series(dtype=float)
         
         df = pd.DataFrame({
-            'ISM_PMI': pmi_composite,
-            'ISM_Employment': pmi,
+            'ISM_PMI': pmi_proxy,  # Using IPMAN/INDPRO as proxy (index ~100 scale)
+            'ISM_Employment': employment,
             'ISM_New_Orders': new_orders,
             'Industrial_Production': industrial_prod,
             'IP_MoM': ip_mom
         })
+        
+        return df
         
         return df
     

@@ -48,24 +48,13 @@ class RecessionIndicatorAnalyzer:
             'weight': 20,
             'description': 'Unemployment Rate Change (3m)'
         },
-        'lei_decline': {
-            'critical': -5.0,     # Steep decline over 6m
-            'warning': -2.0,      # Moderate decline
-            'weight': 10,
-            'description': 'LEI 6-Month Change'
-        },
         'gdp_growth': {
             'critical': -1.0,     # Negative growth
             'warning': 0.5,       # Weak growth
             'weight': 15,
             'description': 'GDP Growth (QoQ)'
         },
-        'manufacturing_pmi': {
-            'critical': 45,       # Deep contraction
-            'warning': 50,        # Contraction
-            'weight': 10,
-            'description': 'ISM Manufacturing PMI'
-        },
+
     }
     
     def __init__(self):
@@ -415,31 +404,6 @@ class RecessionIndicatorAnalyzer:
                     scores['credit_spread'] = self.analyze_credit_spreads(cs[col])
                     break
         
-        # LEI
-        if 'lei' in data_dict:
-            lei = data_dict['lei']
-            if 'LEI_6M_Change' in lei.columns:
-                lei_data = lei['LEI_6M_Change'].dropna()
-                if len(lei_data) > 0:
-                    current = lei_data.iloc[-1]
-                    if current <= self.THRESHOLDS['lei_decline']['critical']:
-                        score = 100
-                        signal = 'Critical - Steep Decline'
-                    elif current <= self.THRESHOLDS['lei_decline']['warning']:
-                        score = 50 + ((abs(current) - abs(self.THRESHOLDS['lei_decline']['warning'])) / 
-                                     (abs(self.THRESHOLDS['lei_decline']['critical']) - abs(self.THRESHOLDS['lei_decline']['warning']))) * 50
-                        signal = 'Warning - Declining'
-                    else:
-                        score = max(0, 50 - (current * 10))
-                        signal = 'Normal'
-                    
-                    scores['lei_decline'] = {
-                        'score': min(100, max(0, score)),
-                        'signal': signal,
-                        'current_value': current,
-                        'interpretation': f'LEI 6m Change: {current:+.1f}%'
-                    }
-        
         # GDP
         if 'gdp' in data_dict:
             gdp = data_dict['gdp']
@@ -463,31 +427,6 @@ class RecessionIndicatorAnalyzer:
                         'signal': signal,
                         'current_value': current,
                         'interpretation': f'GDP Growth: {current:+.1f}% QoQ'
-                    }
-        
-        # Manufacturing PMI
-        if 'manufacturing' in data_dict:
-            mfg = data_dict['manufacturing']
-            if 'ISM_PMI' in mfg.columns:
-                pmi_data = mfg['ISM_PMI'].dropna()
-                if len(pmi_data) > 0:
-                    current = pmi_data.iloc[-1]
-                    if current <= self.THRESHOLDS['manufacturing_pmi']['critical']:
-                        score = 100
-                        signal = 'Critical - Deep Contraction'
-                    elif current <= self.THRESHOLDS['manufacturing_pmi']['warning']:
-                        score = 50 + ((self.THRESHOLDS['manufacturing_pmi']['warning'] - current) / 
-                                     (self.THRESHOLDS['manufacturing_pmi']['warning'] - self.THRESHOLDS['manufacturing_pmi']['critical'])) * 50
-                        signal = 'Warning - Contraction'
-                    else:
-                        score = max(0, 50 - ((current - 50) * 2))
-                        signal = 'Normal - Expansion'
-                    
-                    scores['manufacturing_pmi'] = {
-                        'score': min(100, max(0, score)),
-                        'signal': signal,
-                        'current_value': current,
-                        'interpretation': f'ISM PMI: {current:.1f}'
                     }
         
         # Calculate composite score

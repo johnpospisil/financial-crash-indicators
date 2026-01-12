@@ -340,7 +340,9 @@ class RecessionIndicatorAnalyzer:
                         'weight': weight,
                         'contribution': (score * weight) / 100,  # Contribution to total
                         'signal': score_data.get('signal', 'Unknown'),
-                        'description': config['description']
+                        'description': config['description'],
+                        'current_value': score_data.get('current_value'),
+                        'interpretation': score_data.get('interpretation', '')
                     }
         
         if total_weight == 0:

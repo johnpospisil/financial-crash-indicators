@@ -9,7 +9,7 @@ services:
     region: oregon
     plan: starter # Free tier - upgrade to standard for production
     branch: main
-    buildCommand: pip install -r web_app/requirements.txt
+    buildCommand: pip install -r web_app/requirements.txt && python scripts/prefetch_data.py
     startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120 web_app.app:server
     healthCheckPath: /
     envVars:
